@@ -6,17 +6,17 @@ namespace MixMods.MixPackageManager
 {
     public class Settings
     {
-        private static string userFolder = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        private static string mpmFolder = ".mpm";
-        private static string dir = Path.Combine(userFolder, mpmFolder);
+        private static string dir = ".mpm";
         private static string path = Path.Combine(dir, "settings.ini");
 
         private static void CheckFile()
         {
-            var dir = Path.Combine(userFolder, mpmFolder);
             var path = Path.Combine(dir, "settings.ini");
             if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
+            {
+                var d = Directory.CreateDirectory(dir);
+                d.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
+            }
             if (!File.Exists(path))
                 File.WriteAllText(path, "[Settings]");
         }

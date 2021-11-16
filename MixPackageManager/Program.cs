@@ -39,8 +39,10 @@ namespace MixMods.MixPackageManager
             {
                 var obj = Activator.CreateInstance(method.DeclaringType); // Instantiate the class
                 method.Invoke(obj, new object[] { arguments }); // invoke the method
+                return;
             }
-
+            Error($"Command '{command}' not found!");
+            Help.Print(arguments);
         }
         public static void Error(string msg)
         {

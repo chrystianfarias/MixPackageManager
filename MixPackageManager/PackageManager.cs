@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MixMods.MixPackageManager
 {
@@ -15,24 +17,44 @@ namespace MixMods.MixPackageManager
             }
             else
             {
-                Console.WriteLine(arguments[1]);
+                InstallPackage(arguments[1]);
+            }
+        }
+        public void InstallPackage(string package)
+        {
+            Console.WriteLine("{download}");
+            var i = 0;
+            while (i <= 100)
+            {
+                i++;
+                Console.WriteLine(i);
+                Thread.Sleep(50);
+            }
+            Console.WriteLine("{install}");
+            i = 0;
+            while (i <= 100)
+            {
+                i++;
+                Console.WriteLine(i);
+                Thread.Sleep(20);
             }
         }
         public void InstallPackageJson(Arguments arguments)
         {
-            if (File.Exists("packages.json"))
+            if (File.Exists("mods.json"))
             {
-                Console.WriteLine(File.ReadAllText("packages.json"));
+                Console.WriteLine(File.ReadAllText("mods.json"));
             }
             else
             {
-                Program.Error("packages.json not found! Run 'mpm init' first");
+                Program.Error("mods.json not found! Run 'mpm init' first");
             }
         }
         [Command("init")]
         public void InitPackageJson(Arguments arguments)
         {
             Console.WriteLine("Init!!!!!");
+            Settings.Save("teste", "1234");
         }
     }
 }
