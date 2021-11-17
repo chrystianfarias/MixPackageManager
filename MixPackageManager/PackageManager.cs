@@ -13,7 +13,7 @@ namespace MixMods.MixPackageManager
     public class PackageManager
     {
         [Command("install")]
-        public void Install(Arguments arguments)
+        public void InstallPackage(Arguments arguments)
         {
             if (arguments.Length < 2)
             {
@@ -29,6 +29,38 @@ namespace MixMods.MixPackageManager
 
                 InstallPackage(arg);
             }
+        }
+        [Command("check")]
+        public void CheckInstalledMod(Arguments arguments)
+        {
+            if (arguments.Length >= 2)
+            {
+                var arg = arguments[1];
+
+                if (!arg.Contains("@") && !arg.Contains(".json"))
+                    arg = $"mods/{arg}@latest.json";
+
+                CheckInstalledMod(arg);
+            }
+        }
+        public void CheckInstalledMod(string package)
+        {
+            var packageInfo = package.Split('/')[1].Split('@'); //example: mods/modA@latest.json
+            var packageName = packageInfo[0];  //example: modA
+            var packageVersion = packageInfo[1].Split('.')[0]; //example: latest
+            var mods = GetInstalledPackages();
+            var existentPackage = mods.FirstOrDefault(mod =>
+            {
+                var modInfo = mod.Split('/')[1].Split('@');
+                var modName = modInfo[0];
+                var modVersion = modInfo[1].Split('.')[0];
+
+                return modName == packageName && modVersion == packageVersion;
+            });
+            if (existentPackage != null)
+                Console.WriteLine(Program.isGui ? $"package#true" : $"Package {packageName} with version {packageVersion} is installed");
+            else
+                Console.WriteLine(Program.isGui ? $"package#false" : $"Package {package} is not installed");
         }
         public void InstallPackage(string package)
         {
@@ -159,7 +191,7 @@ namespace MixMods.MixPackageManager
         }
 
         [Command("init")]
-        public void InitPackageJson(Arguments arguments)
+        public void Init(Arguments arguments)
         {
             if (File.Exists("gta_sa.exe"))
             {
