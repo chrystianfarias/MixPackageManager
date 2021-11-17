@@ -1,22 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MixMods.MixPackageManager
 {
     public class Program
     {
+        public static string API = "https://beta.mixmods.com.br/launcher/";
         public static Arguments arguments;
+        public static string fullPath;
         private static void Main(string[] args)
         {
+            fullPath = System.IO.Directory.GetCurrentDirectory();
             try
             {
                 arguments = new Arguments(args);
+                //var packageManager = new PackageManager();
+                //packageManager.Install(arguments);
                 ProcessCommand();
             }
             catch(Exception ex)
             {
                 Error(ex.Message);
+                Error(ex.StackTrace);
             }
         }
         private static void ProcessCommand()
