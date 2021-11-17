@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 namespace MixMods.MixPackageManager
 {
@@ -52,21 +53,45 @@ namespace MixMods.MixPackageManager
 
             try
             {
-                using (var client = new WebClient())
+                var installed = false;
+                var client = new WebClient();
+                client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(DownloadProgressCallback);
+
+                client.DownloadStringAsync(new Uri($"{Program.API}{package}"));
+                client.DownloadStringCompleted += (s, e) =>
                 {
-                    var jsonString = client.DownloadString($"{Program.API}{package}");
+                    var jsonString = e.Result;
                     var mod = JsonConvert.DeserializeObject<Mod>(jsonString);
 
-                    var modFile = client.DownloadData(mod.Url);
-                    var modStream = new MemoryStream(modFile);
+                    //Teste!!
+                    mod.Url = "https://beta.mixmods.com.br/launcher/mods/files/SA%20-%20SilentPatch.7z";
+                    Console.WriteLine(mod.Url);
 
-                    using (ArchiveFile archiveFile = new ArchiveFile(modStream))
+                    client.DownloadDataAsync(new Uri(mod.Url));
+                    client.DownloadDataCompleted += (s2, e2) =>
                     {
-                        archiveFile.Extract(Program.fullPath);
-                    }
+                        var modFile = e2.Result;
+                        var modStream = new MemoryStream(modFile);
 
-                    mods.Add(package);
-                    SetInstalledPackages(mods);
+                        using (ArchiveFile archiveFile = new ArchiveFile(modStream))
+                        {
+                            Console.WriteLine(Program.isGui ? $"extract#" : $"Extracting {packageName} package");
+                            archiveFile.Extract(Program.fullPath);
+                        }
+
+                        Console.WriteLine(Program.isGui ? $"install#" : $"Installing {packageName} package");
+                        //TODO: installation
+
+                        mods.Add(package);
+                        SetInstalledPackages(mods);
+
+                        Console.WriteLine(Program.isGui ? $"complete" : $"Package {packageName} Installed");
+                        installed = true;
+                    };
+                };
+                while(installed == false)
+                {
+                    Thread.Sleep(200);
                 }
             }
             catch (WebException ex)
@@ -89,6 +114,19 @@ namespace MixMods.MixPackageManager
                 }
                 Program.Error(ex.Message);
             }
+        }
+        private static void DownloadProgressCallback(object sender, DownloadProgressChangedEventArgs e)
+        {
+            // Displays the operation identifier, and the transfer progress.
+            if (Program.isGui)
+                Console.WriteLine("download#{0}#",
+                    e.ProgressPercentage);
+            else
+                Console.WriteLine("{0}    downloaded {1} of {2} bytes. {3} % complete...",
+                        (string)e.UserState,
+                        e.BytesReceived,
+                        e.TotalBytesToReceive,
+                        e.ProgressPercentage);
         }
         public void InstallPackageJson(Arguments arguments)
         {

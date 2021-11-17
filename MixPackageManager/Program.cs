@@ -10,14 +10,14 @@ namespace MixMods.MixPackageManager
         public static string API = "https://beta.mixmods.com.br/launcher/";
         public static Arguments arguments;
         public static string fullPath;
+        public static bool isGui;
         private static void Main(string[] args)
         {
             fullPath = System.IO.Directory.GetCurrentDirectory();
             try
             {
                 arguments = new Arguments(args);
-                //var packageManager = new PackageManager();
-                //packageManager.Install(arguments);
+                isGui = arguments.Contains("-gui");
                 ProcessCommand();
             }
             catch(Exception ex)
@@ -53,7 +53,7 @@ namespace MixMods.MixPackageManager
         }
         public static void Error(string msg)
         {
-            Console.WriteLine("[ERROR] " + msg);
+            Console.WriteLine(Program.isGui ? "error#" + msg : "[ERROR] " + msg);
         }
     }
 }
