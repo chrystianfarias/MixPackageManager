@@ -9,6 +9,12 @@ namespace MixMods.MixPackageManager.Models
 
         [JsonProperty("url")]
         public string Url { get; set; }
+        
+        [JsonProperty("extract_dir")]
+        public string ExtractDir { get; set; }
+
+        [JsonProperty("to_directory")]
+        public string ToDirectory { get; set; }
 
         [JsonProperty("dependency_mods")]
         public string[] DependencyMods { get; set; }

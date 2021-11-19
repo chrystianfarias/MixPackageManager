@@ -7,7 +7,8 @@ namespace MixMods.MixPackageManager
 {
     public class Program
     {
-        public static string API = "https://beta.mixmods.com.br/launcher/";
+        //public static string API = "https://beta.mixmods.com.br/launcher/";
+        public static string API = "https://raw.githubusercontent.com/chrystianfarias/mpm/main/";
         public static Arguments arguments;
         public static string fullPath;
         public static bool isGui;
@@ -16,8 +17,13 @@ namespace MixMods.MixPackageManager
             fullPath = System.IO.Directory.GetCurrentDirectory();
             try
             {
+                //fullPath = @"C:\Program Files (x86)\Rockstar Games\GTA San Andreas";
+                //args = new string[] {"install", "silent_patch" };
+
                 arguments = new Arguments(args);
                 isGui = arguments.Contains("-gui");
+                //var packageManager = new PackageManager();
+                //packageManager.InstallPackage(arguments);
                 ProcessCommand();
             }
             catch(Exception ex)
