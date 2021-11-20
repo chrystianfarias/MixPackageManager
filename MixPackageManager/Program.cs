@@ -15,22 +15,23 @@ namespace MixMods.MixPackageManager
         private static void Main(string[] args)
         {
             fullPath = System.IO.Directory.GetCurrentDirectory();
-            try
-            {
-                //fullPath = @"C:\Program Files (x86)\Rockstar Games\GTA San Andreas";
-                //args = new string[] {"install", "silent_patch" };
+            //try
+            //{
+                fullPath = @"C:\Program Files (x86)\Rockstar Games\GTA San Andreas";
+                args = new string[] {"get-mod", "-modloader" };
 
                 arguments = new Arguments(args);
                 isGui = arguments.Contains("-gui");
-                //var packageManager = new PackageManager();
-                //packageManager.InstallPackage(arguments);
-                ProcessCommand();
-            }
+                var packageManager = new PackageManager();
+                packageManager.GetMods(arguments);
+                Console.ReadLine();
+                //ProcessCommand();
+            /*}
             catch(Exception ex)
             {
                 Error(ex.Message);
                 Error(ex.StackTrace);
-            }
+            }*/
         }
         private static void ProcessCommand()
         {

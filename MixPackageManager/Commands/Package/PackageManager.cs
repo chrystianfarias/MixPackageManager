@@ -1,4 +1,6 @@
-﻿using MixMods.MixPackageManager.Models;
+﻿using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+using MixMods.MixPackageManager.Models;
 using Newtonsoft.Json;
 using SevenZipExtractor;
 using System;
@@ -274,6 +276,70 @@ namespace MixMods.MixPackageManager
             else
             {
                 Program.Error("run command in GTA SA root folder!");
+            }
+        }
+
+        [Command("get-mods")]
+        public void GetMods(Arguments arguments)
+        {
+            var isModloader = arguments.Contains("-modloader");
+            var isMPM = arguments.Contains("-modmpm");
+            if (isModloader == false && isMPM == false)
+            {
+                Program.Error("Select -modloader or -modmpm!");
+                return;
+            }
+            if (isMPM)
+            {
+                var mods = GetInstalledPackages();
+                foreach(var mod in mods)
+                {
+                    Console.WriteLine(mod);
+                }
+            }
+            if (isModloader)
+            {
+                var mods = new Dictionary<string, List<string>>();
+                GetModsInFolder("cleo", mods);
+                GetModsInFolder("decision/allowed", mods);
+                GetModsInFolder("models/txd", mods);
+                GetModsInFolder("player.img", mods);
+                GetModsInFolder("GENRL", mods);
+
+                foreach (var mod in mods)
+                {
+                    Console.WriteLine($"{String.Join(", ", mod.Value.ToArray())} :: {mod.Key}");
+                }
+
+            }
+        }
+        public void GetModsInFolder(string search, Dictionary<string, List<String>> mods)
+        {
+            var matcher = new Matcher();
+            matcher.AddExclude(".data/**");
+            matcher.AddInclude($"**/{search}/*");
+
+            var result = matcher.Execute(
+                new DirectoryInfoWrapper(
+                    new DirectoryInfo(Path.Combine(Program.fullPath, "modloader"))));
+
+            foreach (var file in result.Files)
+            {
+                var paths = new List<string>() { "C://", file.Path, "../" };
+                foreach (var sub in search.Split('/'))
+                    paths.Add("../");
+
+                var dir = Path.GetFullPath(Path.Combine(paths.ToArray()));
+                dir = dir.Replace("C:\\", string.Empty).TrimEnd('\\');
+                if (mods.ContainsKey(dir))
+                {
+                    if (!mods[dir].Contains(search))
+                        mods[dir].Add(search);
+                }
+                else
+                {
+                    mods.Add(dir, new List<string>() { search });
+                }
             }
         }
     }
