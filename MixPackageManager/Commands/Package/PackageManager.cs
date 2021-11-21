@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using MixMods.MixPackageManager.Models;
+using MixMods.MixPackageManager.Utils;
 using Newtonsoft.Json;
 using SevenZipExtractor;
 using System;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 
 namespace MixMods.MixPackageManager
@@ -278,7 +280,49 @@ namespace MixMods.MixPackageManager
                 Program.Error("run command in GTA SA root folder!");
             }
         }
+        [Command("mod")]
+        public void IgnoreMod(Arguments arguments)
+        {
+            if (arguments.Length >= 3)
+            {
+                var arg = arguments[1];
+                var base64 = Convert.FromBase64String(arg);
+                var decodedString = Encoding.Default.GetString(base64);
 
+                var ini = new IniFile(Path.Combine(Program.fullPath, "modloader", "modloader.ini"));
+                if (arguments.Contains("-ignore"))
+                    ini.Write(decodedString, null, "Profiles.Default.IgnoreMods");
+                if (arguments.Contains("-noignore"))
+                    ini.DeleteKey(decodedString, "Profiles.Default.IgnoreMods");
+            }
+        }
+        [Command("reorder")]
+        public void ReorderMods(Arguments arguments)
+        {
+            if (arguments.Length >= 2)
+            {
+                var arg = arguments[1];
+                var base64 = Convert.FromBase64String(arg);
+                var decodedString = Encoding.Default.GetString(base64);
+                var json = JsonConvert.DeserializeObject<string[]>(decodedString);
+                
+                var ini = new IniFile(Path.Combine(Program.fullPath, "modloader", "modloader.ini"));
+                ini.DeleteSection("Profiles.Default.Priority");
+                
+                //TODO: fix init.Write
+                var iniString = "[Profiles.Default.Priority]\n";
+                var priority = 1;
+                foreach (var mod in json)
+                {
+                    if (mod == "")
+                        continue;
+                    //ini.Write(mod, priority.ToString(), "Profiles.Default.Priority");
+                    iniString += $"{mod} = {priority}\n";
+                    priority++;
+                }
+                ini.WriteText(iniString);
+            }
+        }
         [Command("get-mods")]
         public void GetMods(Arguments arguments)
         {

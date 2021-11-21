@@ -17,15 +17,10 @@ namespace MixMods.MixPackageManager
             fullPath = System.IO.Directory.GetCurrentDirectory();
             try
             {
-                fullPath = @"C:\Program Files (x86)\Rockstar Games\GTA San Andreas";
-                //args = new string[] {"get-mod", "-modloader" };
-
                 arguments = new Arguments(args);
                 isGui = arguments.Contains("-gui");
-
                 //var packageManager = new PackageManager();
-                //packageManager.GetMods(arguments);
-                //Console.ReadLine();
+                //packageManager.ReorderMods(arguments);
                 ProcessCommand();
             }
             catch(Exception ex)

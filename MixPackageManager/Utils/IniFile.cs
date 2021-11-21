@@ -31,6 +31,11 @@ namespace MixMods.MixPackageManager.Utils
             WritePrivateProfileString(Section, Key, Value, Path);
         }
 
+        public void WriteText(string text)
+        {
+            File.AppendAllText(Path, text);
+        }
+
         public void DeleteKey(string Key, string Section)
         {
             Write(Key, null, Section);
