@@ -300,24 +300,36 @@ namespace MixMods.MixPackageManager
             if (isModloader)
             {
                 var mods = new Dictionary<string, List<string>>();
-                GetModsInFolder("cleo", mods);
-                GetModsInFolder("decision/allowed", mods);
-                GetModsInFolder("models/txd", mods);
-                GetModsInFolder("player.img", mods);
-                GetModsInFolder("GENRL", mods);
+
+                //Folders
+                GetModsInFolder("cleo/*", "cleo", mods);
+                GetModsInFolder("decision/allowed/*", "ped/grp", mods);
+                GetModsInFolder("models/txd/*", "sprites", mods);
+                GetModsInFolder("player.img/*", "clothing", mods);
+                GetModsInFolder("gta3.img/*", "nodes", mods);
+                GetModsInFolder("GENRL/*", "audio", mods);
+
+                //Extensions
+                GetModsInFolder("*.asi", "scripts", mods);
+                GetModsInFolder("*.col", "collision", mods);
+                GetModsInFolder("*.txd", "texture", mods);
+                GetModsInFolder("*.dff", "model", mods);
+                GetModsInFolder("*.ide", "map", mods);
+                GetModsInFolder("*.ipl", "map", mods);
+                GetModsInFolder("*.ifp", "animation", mods);
 
                 foreach (var mod in mods)
                 {
-                    Console.WriteLine($"{String.Join(", ", mod.Value.ToArray())} :: {mod.Key}");
+                    Console.WriteLine($"mod#{mod.Key}#{String.Join(", ", mod.Value.ToArray())}");
                 }
 
             }
         }
-        public void GetModsInFolder(string search, Dictionary<string, List<String>> mods)
+        public void GetModsInFolder(string search, string mod, Dictionary<string, List<String>> mods)
         {
             var matcher = new Matcher();
             matcher.AddExclude(".data/**");
-            matcher.AddInclude($"**/{search}/*");
+            matcher.AddInclude($"**/{search}");
 
             var result = matcher.Execute(
                 new DirectoryInfoWrapper(
@@ -325,7 +337,7 @@ namespace MixMods.MixPackageManager
 
             foreach (var file in result.Files)
             {
-                var paths = new List<string>() { "C://", file.Path, "../" };
+                var paths = new List<string>() { "C://", file.Path };
                 foreach (var sub in search.Split('/'))
                     paths.Add("../");
 
@@ -333,12 +345,12 @@ namespace MixMods.MixPackageManager
                 dir = dir.Replace("C:\\", string.Empty).TrimEnd('\\');
                 if (mods.ContainsKey(dir))
                 {
-                    if (!mods[dir].Contains(search))
-                        mods[dir].Add(search);
+                    if (!mods[dir].Contains(mod))
+                        mods[dir].Add(mod);
                 }
                 else
                 {
-                    mods.Add(dir, new List<string>() { search });
+                    mods.Add(dir, new List<string>() { mod });
                 }
             }
         }
