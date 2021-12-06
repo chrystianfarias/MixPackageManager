@@ -19,86 +19,84 @@ namespace MixMods.MixPackageManager
         [Command("install")]
         public void InstallPackage(Arguments arguments)
         {
-            if (arguments.Length < 2)
+            try
             {
-                InstallPackageJson(arguments);
-                return;
+                if (arguments.Length < 2)
+                {
+                    InstallPackageJson(arguments);
+                    return;
+                }
+                else
+                {
+                    var arg = arguments[1];
+                    var args = arg.Split('@');
+
+                    InstallPackage(args[0], args.Length > 1 ? args[1] : "latest");
+                }
             }
-            else
+            catch(Exception ex)
             {
-                var arg = arguments[1];
-
-                if (!arg.Contains("@"))
-                    arg = $"{arg}@latest";
-
-                InstallPackage(arg);
+                Program.Error(ex.Message);
             }
         }
         [Command("check-package")]
         public void CheckInstalledMod(Arguments arguments)
         {
-            if (arguments.Length >= 2)
+            try
             {
-                var arg = arguments[1];
+                if (arguments.Length >= 2)
+                {
+                    var arg = arguments[1];
+                    var args = arg.Split('@');
 
-                if (!arg.Contains("@"))
-                    arg = $"{arg}@latest";
-
-                CheckInstalledMod(arg);
+                    CheckInstalledMod(args[0], args.Length > 1 ? args[1] : "latest");
+                }
+            }
+            catch(Exception ex)
+            {
+                Program.Error(ex.Message);
             }
         }
-        public bool CheckInstalledMod(string package)
+        public bool CheckInstalledMod(string package, string version)
         {
-            var packageInfo = package.Split('@'); //example: mods/modA@latest.json
-            var packageName = packageInfo[0];  //example: modA
-            var packageVersion = packageInfo[1].Split('.')[0]; //example: latest
             var mods = GetInstalledPackages();
             var existentPackage = mods.FirstOrDefault(mod =>
             {
-                var modInfo = mod.Split('@');
-                var modName = modInfo[0];
-                var modVersion = modInfo[1].Split('.')[0];
-
-                return modName == packageName && modVersion == packageVersion;
+                return mod.Package == package && mod.Version == version;
             });
             if (existentPackage != null)
-                Console.WriteLine(Program.isGui ? $"package#true" : $"Package {packageName} with version {packageVersion} is installed");
+                Console.WriteLine(Program.isGui ? $"package#true" : $"Package {package} with version {version} is installed");
             else
                 Console.WriteLine(Program.isGui ? $"package#false" : $"Package {package} is not installed");
             return existentPackage != null;
         }
-        public void InstallPackage(string package)
+        public void InstallPackage(string package, string version)// = "latest")
         {
             if (!File.Exists(Path.Combine(Program.fullPath, "mods.json")))
             { 
                 Program.Error("mods.json not found! Run 'mpm init' first");
                 return;
             }
-            var mods = GetInstalledPackages();
-            var packageInfo = package.Split('@'); //example: mods/modA@latest.json
-            var packageName = packageInfo[0];  //example: modA
-            var packageVersion = packageInfo[1].Split('.')[0]; //example: latest
 
-            mods.FirstOrDefault(m =>
-            {
-                var modInfo = m.Split('@');
-                var modName = modInfo[0];
-                var modVersion = modInfo[1].Split('.')[0];
+            byte[] jsonByte = Download(new Uri($"{Program.API}mods/{package}@{version}.json"));
+            if (jsonByte.Length == 0)
+                jsonByte = Download(new Uri($"{Program.API}mods/{package}@latest.json"));
 
-                return modName == packageName && modVersion == packageVersion;
-            }); //Is installed
-
-            var jsonByte = Download(new Uri($"{Program.API}mods/{package}.json"));
             var jsonString = System.Text.Encoding.Default.GetString(jsonByte);
             var mod = JsonConvert.DeserializeObject<Mod>(jsonString);
+            mod.Package = package;
 
             //Install dependencies
             foreach (var dependency in mod.DependencyMods)
-                InstallPackage(dependency);
+            {
+                var dependencyPackage = dependency.Split('@');
+                InstallPackage(dependencyPackage[0], dependencyPackage[1]);
+            }
                     
             var modFile = Download(new Uri(mod.Url));
             var modStream = new MemoryStream(modFile);
-            var extractModLoaderFolder = Path.Combine(Program.fullPath, mod.ToDirectory.Replace("{package}", packageName));
+            var rootExtractModLoaderFolder = mod.ToDirectory.Replace("{package}", package);
+            var extractModLoaderFolder = Path.Combine(Program.fullPath, rootExtractModLoaderFolder);
             try
             {
                 //If file directory not exists, create
@@ -111,7 +109,7 @@ namespace MixMods.MixPackageManager
                             
                 using (ArchiveFile archiveFile = new ArchiveFile(modStream))
                 {
-                    Console.WriteLine(Program.isGui ? $"extract#" : $"Extracting {packageName} package");
+                    Console.WriteLine(Program.isGui ? $"extract#" : $"Extracting {package} package");
                     //Extract to temp folder.7z
                     archiveFile.Extract(tempFolder, true);
                 }
@@ -140,7 +138,7 @@ namespace MixMods.MixPackageManager
                 Directory.Delete(tempFolder, true);
                             
                 //Save .mod file
-                File.WriteAllText(Path.Combine(extractModLoaderFolder, $"{packageName}.mod"), jsonString);
+                File.WriteAllText(Path.Combine(extractModLoaderFolder, $"{package}.mod"), JsonConvert.SerializeObject(mod));
                             
             }
             catch (IOException ex)
@@ -150,16 +148,16 @@ namespace MixMods.MixPackageManager
                 Environment.Exit(2);
             }
 
-            Console.WriteLine(Program.isGui ? $"install#" : $"Installing {packageName} package");
+            Console.WriteLine(Program.isGui ? $"install#" : $"Installing {package} package");
             //TODO: installation
+            
+            AddInstalledPackages(Path.Combine(rootExtractModLoaderFolder, $"{package}.mod"));
 
-            mods.Add(package);
-            SetInstalledPackages(mods);
-
-            Console.WriteLine(Program.isGui ? $"complete" : $"Package {packageName} Installed");
+            Console.WriteLine(Program.isGui ? $"complete" : $"Package {package} Installed");
         }
         private static byte[] Download(Uri uri)
         {
+            Console.WriteLine("Download " + uri.ToString());
             byte[] downloaded = null;
             try
             {
@@ -168,7 +166,14 @@ namespace MixMods.MixPackageManager
                 client.DownloadDataAsync(uri);
                 client.DownloadDataCompleted += (s, e) =>
                 {
-                    downloaded = e.Result;
+                    try
+                    {
+                        downloaded = e.Result;
+                    }
+                    catch
+                    {
+                        downloaded = new byte[0];
+                    }
                 };
                 while (downloaded == null)
                 {
@@ -194,6 +199,10 @@ namespace MixMods.MixPackageManager
                     return null;
                 }
                 Program.Error(ex.Message);
+            }
+            catch
+            {
+                return null;
             }
             return downloaded;
         }
@@ -249,17 +258,29 @@ namespace MixMods.MixPackageManager
                 Program.Error("mods.json not found! Run 'mpm init' first");
             }
         }
-        public void SetInstalledPackages(List<string> mods)
+        public void AddInstalledPackages(string modPath)
         {
-            var json = JsonConvert.SerializeObject(mods);
+            var modsText = File.ReadAllText(Path.Combine(Program.fullPath, "mods.json"));
+            var modsList = JsonConvert.DeserializeObject<List<string>>(modsText);
+            if (!modsList.Contains(modPath))
+                modsList.Add(modPath);
+            var json = JsonConvert.SerializeObject(modsList);
             File.WriteAllText("mods.json", json);
         }
-        public List<string> GetInstalledPackages()
+        public List<Mod> GetInstalledPackages()
         {
             if (File.Exists(Path.Combine(Program.fullPath, "mods.json")))
             {
                 var modsText = File.ReadAllText(Path.Combine(Program.fullPath, "mods.json"));
-                return JsonConvert.DeserializeObject<List<string>>(modsText);
+                var modsList = JsonConvert.DeserializeObject<List<string>>(modsText);
+                var mods = new List<Mod>();
+                foreach(var modPath in modsList)
+                {
+                    var modText = File.ReadAllText(modPath);
+                    var mod = JsonConvert.DeserializeObject<Mod>(modText);
+                    mods.Add(mod);
+                }
+                return mods;
             }
             else
             {

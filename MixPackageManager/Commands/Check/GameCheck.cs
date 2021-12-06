@@ -10,14 +10,30 @@ namespace MixMods.MixPackageManager
         [Command("check-game")]
         public static void Check(Arguments arguments)
         {
-            CheckInstallPath();
-            CheckFiles();
+            try
+            {
+                CheckInstallPath();
+                CheckExecutable();
+                CheckFiles();
+            }
+            catch(Exception ex)
+            {
+                Program.Error(ex.Message);
+            }
         }
         private static void CheckInstallPath()
         {
             if (Program.fullPath.Contains(@"C:\Program Files"))
             {
-                Program.Error(@"It is not recommended to install the game in the C:\Program Files folder!");
+                Console.WriteLine(Program.isGui ? $"path#notrecommended" : @"It is not recommended to install the game in the C:\Program Files folder!");
+            }
+        }
+        private static void CheckExecutable()
+        {
+            var info = new FileInfo(Path.Combine(Program.fullPath, "gta_sa.exe"));
+            if (info.Length != 14383616)
+            {
+                Console.WriteLine(Program.isGui ? $"exe#notrecommended" : @"Use hoodlum executable");
             }
         }
         private static void CheckFiles()
@@ -35,11 +51,11 @@ namespace MixMods.MixPackageManager
                 {
                     long length = new FileInfo(path).Length;
                     if (length != size)
-                        Program.Error($"File {name} is modified!");
+                        Console.WriteLine(Program.isGui ? $"modified#{name}" : $"File {name} is modified!");
                 }
                 else
                 {
-                    Program.Error($"File {name} is not in game folder!");
+                    Console.WriteLine(Program.isGui ? $"missing#{name}" : $"File {name} is not in game folder!");
                 }
             }
         }

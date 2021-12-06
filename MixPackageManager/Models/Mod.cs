@@ -4,6 +4,9 @@ namespace MixMods.MixPackageManager.Models
 {
     public class Mod
     {
+        [JsonProperty("package")]
+        public string Package { get; set; }
+
         [JsonProperty("version")]
         public string Version { get; set; }
 

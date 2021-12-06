@@ -7,7 +7,6 @@ namespace MixMods.MixPackageManager
 {
     public class Program
     {
-        //public static string API = "https://beta.mixmods.com.br/launcher/";
         public static string API = "https://raw.githubusercontent.com/chrystianfarias/mpm/main/";
         public static Arguments arguments;
         public static string fullPath;
@@ -15,6 +14,11 @@ namespace MixMods.MixPackageManager
         private static void Main(string[] args)
         {
             fullPath = System.IO.Directory.GetCurrentDirectory();
+            /*arguments = new Arguments(args);
+            isGui = arguments.Contains("-gui");
+            var packageManager = new PackageManager();
+            packageManager.InstallPackage(arguments);*/
+
             try
             {
                 arguments = new Arguments(args);
