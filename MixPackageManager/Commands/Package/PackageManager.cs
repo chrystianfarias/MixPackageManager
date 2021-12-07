@@ -292,6 +292,9 @@ namespace MixMods.MixPackageManager
         [Command("init")]
         public void Init(Arguments arguments)
         {
+            if (File.Exists(Path.Combine(Program.fullPath, "mods.json")))
+                return;
+
             if (File.Exists(Path.Combine(Program.fullPath, "gta_sa.exe")))
             {
                 File.WriteAllText(Path.Combine(Program.fullPath, "mods.json"), "[]");
