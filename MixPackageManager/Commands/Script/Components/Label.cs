@@ -10,6 +10,7 @@ namespace MixMods.MixPackageManager.Commands.Script
     public class Label
     {
         private System.Windows.Forms.Label lbl;
+
         public Label(System.Windows.Forms.Label lbl)
         {
             this.lbl = lbl;

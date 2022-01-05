@@ -70,7 +70,7 @@ namespace MixMods.MixPackageManager
                 Console.WriteLine(Program.isGui ? $"package#false" : $"Package {package} is not installed");
             return existentPackage != null;
         }
-        public void InstallPackage(string package, string version)// = "latest")
+        public void InstallPackage(string package, string version)
         {
             if (!File.Exists(Path.Combine(Program.fullPath, "mods.json")))
             { 
@@ -132,6 +132,12 @@ namespace MixMods.MixPackageManager
                         Console.WriteLine($"File {Path.GetFileName(path)} replaced.");
                     }
                     File.Move(file, path);
+                }
+                //Execute script
+                var scriptPath = Path.Combine(tempFolder, "install.js");
+                if (File.Exists(scriptPath))
+                {
+                    ScriptManager.ExecuteScript(scriptPath);
                 }
 
                 //Delete temp folder

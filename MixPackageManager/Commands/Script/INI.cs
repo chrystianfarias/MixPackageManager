@@ -16,13 +16,6 @@ namespace MixMods.MixPackageManager.Commands.Script
             this.path = path;
         }
 
-        public static INI OpenIni(string path)
-        {
-            var parser = new FileIniDataParser();
-            IniData data = parser.ReadFile(path);
-            return new INI(data, path);
-        }
-
         public string[] getSections()
         {
             var sections = new string[data.Sections.Count];

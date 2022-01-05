@@ -73,6 +73,7 @@
     <Compile Include="Commands\Script\Components\CheckBox.cs" />
     <Compile Include="Commands\Script\Components\Label.cs" />
     <Compile Include="Commands\Script\Components\Dialog.cs" />
+    <Compile Include="Commands\Script\FileSystem.cs" />
     <Compile Include="Commands\Script\INI.cs" />
     <Compile Include="Commands\Script\OptionDialog.cs">
       <SubType>Form</SubType>

@@ -10,15 +10,12 @@ namespace MixMods.MixPackageManager.Commands.Script
     public class Dialog
     {
         private OptionDialog form;
-        public Dialog(OptionDialog form)
-        {
-            this.form = form;
-        }
-
-        public static Dialog CreateDialog()
+        public Dialog() : this("Options") { }
+        public Dialog(string title)
         {
             OptionDialog dialog = new OptionDialog();
-            return new Dialog(dialog);
+            dialog.Text = title;
+            this.form = dialog;
         }
         public string show()
         {

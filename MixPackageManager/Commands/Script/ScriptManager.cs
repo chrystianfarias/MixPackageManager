@@ -29,17 +29,22 @@ namespace MixMods.MixPackageManager
         {
             try
             {
+                var fs = new FileSystem();
                 var engine = new Engine()
-                    .SetValue("log", new Action<object>(Console.WriteLine))
+                    .SetValue("print", new Action<object>(Console.WriteLine))
                     .SetValue("message", new Action<string, string, string>(OpenMessage))
-                    .SetValue("createDialog", new Func<Dialog>(Dialog.CreateDialog))
-                    .SetValue("openIni", new Func<string, INI>(INI.OpenIni));
+                    .SetValue("IO", fs)
+                    .SetValue("Dialog", typeof(Dialog));
 
                 engine.Execute(File.ReadAllText(path));
             }
+            catch (Jint.Parser.ParserException ex)
+            {
+                OpenMessage("Syntax error: " + ex.Message, "Script Error", "error");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                OpenMessage(ex.Message, "Error", "error");
             }
         }
         public static void OpenMessage(string title, string description, string type = "")
